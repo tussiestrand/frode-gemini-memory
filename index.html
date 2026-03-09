@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gemini Hukommelse – austenå.no</title>
+<style>
+:root{--bg:#0a0a0f;--surface:#1e293b;--card:#1c2333;--border:#30363d;--accent:#a78bfa;--accent2:#58a6ff;--green:#3fb950;--yellow:#d29922;--red:#f85149;--text:#e2e8f0;--muted:#8b949e;--font:system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+nav{background:rgba(13,17,23,.95);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;gap:2rem;height:56px;position:sticky;top:0;z-index:100}
+nav .logo{font-weight:700;font-size:1.1rem;color:var(--accent);display:flex;align-items:center;gap:.5rem}
+nav a{color:var(--muted);text-decoration:none;font-size:.9rem;transition:color .2s}
+nav a:hover{color:var(--text)}
+.hero{text-align:center;padding:4rem 2rem 2rem;background:radial-gradient(ellipse at top,#1a1040 0%,transparent 60%)}
+.hero h1{font-size:clamp(2rem,5vw,3rem);background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.75rem}
+.hero p{color:var(--muted);max-width:500px;margin:0 auto 2rem;line-height:1.6}
+main{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;display:grid;grid-template-columns:1fr 340px;gap:1.5rem}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.panel-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-header h2{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+.panel-body{padding:1.25rem}
+.memory-list{display:flex;flex-direction:column;gap:.75rem;max-height:520px;overflow-y:auto}
+.memory-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;position:relative;transition:border-color .2s}
+.memory-item:hover{border-color:var(--accent)}
+.memory-item .tag{display:inline-block;font-size:.7rem;padding:.2rem .6rem;border-radius:20px;font-weight:600;margin-bottom:.5rem}
+.tag-pc{background:#1f3a5f;color:var(--accent2)}
+.tag-phone{background:#2d1f5f;color:#c6acff}
+.tag-manual{background:#1f3d20;color:var(--green)}
+.memory-item .content{font-size:.9rem;line-height:1.5;color:var(--text)}
+.memory-item .meta{font-size:.74rem;color:var(--muted);margin-top:.5rem;display:flex;justify-content:space-between;align-items:center}
+.memory-item .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:.2rem .5rem;border-radius:4px;transition:background .2s,color .2s}
+.memory-item .del-btn:hover{background:rgba(248,81,73,.15);color:var(--red)}
+.add-form{display:flex;flex-direction:column;gap:.75rem}
+.add-form textarea{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.9rem;padding:.75rem 1rem;resize:vertical;min-height:90px;transition:border-color .2s}
+.add-form textarea:focus{outline:none;border-color:var(--accent)}
+.add-form select{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.875rem;padding:.6rem .75rem}
+.add-form select:focus{outline:none;border-color:var(--accent)}
+.btn{background:linear-gradient(135deg,var(--accent),#5a4fd1);border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:var(--font);font-size:.875rem;font-weight:600;padding:.65rem 1.25rem;transition:opacity .2s,transform .1s}
+.btn:hover{opacity:.9}
+.btn:active{transform:scale(.98)}
+.code-block{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'Consolas','Courier New',monospace;font-size:.78rem;color:#a5d6ff;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;line-height:1.6;position:relative}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:.72rem;padding:.25rem .6rem;transition:all .2s}
+.copy-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.sidebar{display:flex;flex-direction:column;gap:1.5rem}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:.75rem}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--card);border:1px solid var(--green);border-radius:8px;color:var(--green);padding:.75rem 1.25rem;font-size:.875rem;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<nav>
+<div class="logo"><span>🧠</span> Gemini Hukommelse</div>
+<a href="#minne">Minne</a>
+<a href="#bash">Bash Script</a>
+<a href="https://frode.xn--austen-nua.no">Tilbake til guide</a>
+</nav>
+<div class="hero">
+<h1>Gemini sin hukommelse</h1>
+<p>Alt Gemini vet om deg – synkronisert mellom PC og telefon.</p>
+</div>
+<main>
+<div>
+<div class="panel">
+<div class="panel-header">
+<h2>📝 Legg til nytt minne</h2>
+</div>
+<div class="panel-body">
+<form class="add-form" id="addForm">
+<textarea id="memoryText" placeholder="F.eks: Jeg bor i Oslo, jobber med Linux-servere, og liker å kode i Python..." required></textarea>
+<select id="memorySource">
+<option value="manual">🖊️ Manuelt</option>
+<option value="pc">💻 PC</option>
+<option value="phone">📱 Telefon</option>
+</select>
+<button type="submit" class="btn">Lagre minne</button>
+</form>
+</div>
+</div>
+<div class="panel" style="margin-top:1.5rem">
+<div class="panel-header">
+<h2>💾 Lagrede minner (<span id="memoryCount">0</span>)</h2>
+</div>
+<div class="panel-body">
+<div class="memory-list" id="memoryList"></div>
+</div>
+</div>
+</div>
+<div class="sidebar">
+<div class="panel">
+<div class="panel-header">
+<h2>🔄 Bash Script</h2>
+</div>
+<div class="panel-body">
+<p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Bruk dette skriptet for å laste minne automatisk i Gemini CLI:</p>
+<div class="code-block" id="bashScript" style="max-height:200px">#!/bin/bash
+# Gemini Memory Loader
+MEMORY=$(curl -s https://gemini.xn--austen-nua.no/api)
+gemini "$MEMORY" "$@"</div>
+<button class="copy-btn" onclick="copyBash()">Kopiér</button>
+<p style="font-size:.75rem;color:var(--muted);margin-top:.75rem">Lagre som <code>gm</code> i ~/.local/bin og kjør: <code>chmod +x ~/.local/bin/gm</code></p>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">
+<h2>📤 Eksporter</h2>
+</div>
+<div class="panel-body">
+<button class="btn" onclick="exportMemory()" style="width:100%">Last ned JSON</button>
+</div>
+</div>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const memories=JSON.parse(localStorage.getItem('geminiMemories')||'[]');
+
+function renderMemories(){
+const list=document.getElementById('memoryList');
+const count=document.getElementById('memoryCount');
+count.textContent=memories.length;
+if(!memories.length){
+list.innerHTML='<div class="empty-state"><div class="icon">🤔</div><p>Ingen minner ennå. Legg til ditt første minne!</p></div>';
+return;
+}
+list.innerHTML=memories.map((m,i)=>{
+const tags={manual:'tag-manual',pc:'tag-pc',phone:'tag-phone'};
+const icons={manual:'🖊️',pc:'💻',phone:'📱'};
+return`<div class="memory-item">
+<span class="tag ${tags[m.source]}">${icons[m.source]} ${m.source.toUpperCase()}</span>
+<div class="content">${m.text}</div>
+<div class="meta">
+<span>${new Date(m.timestamp).toLocaleDateString('no')}</span>
+<button class="del-btn" onclick="deleteMemory(${i})">Slett</button>
+</div>
+</div>`;
+}).join('');
+}
+
+function saveMemories(){
+localStorage.setItem('geminiMemories',JSON.stringify(memories));
+}
+
+document.getElementById('addForm').addEventListener('submit',e=>{
+e.preventDefault();
+const text=document.getElementById('memoryText').value.trim();
+const source=document.getElementById('memorySource').value;
+if(!text)return;
+memories.unshift({text,source,timestamp:Date.now()});
+saveMemories();
+renderMemories();
+document.getElementById('memoryText').value='';
+showToast('✅ Minne lagret!');
+});
+
+function deleteMemory(i){
+if(confirm('Slette dette minnet?')){
+memories.splice(i,1);
+saveMemories();
+renderMemories();
+showToast('🗑️ Minne slettet');
+}
+}
+
+function showToast(msg){
+const toast=document.getElementById('toast');
+toast.textContent=msg;
+toast.classList.add('show');
+setTimeout(()=>toast.classList.remove('show'),3000);
+}
+
+function copyBash(){
+const text=`#!/bin/bash
+# Gemini Memory Loader for ${window.location.hostname}
+MEMORY='${memories.map(m=>m.text).join('. ')}'
+gemini "Kontekst om bruker: $MEMORY. Nå, svare på: $*"`;
+navigator.clipboard.writeText(text);
+showToast('📋 Bash-skript kopiert!');
+}
+
+function exportMemory(){
+const blob=new Blob([JSON.stringify(memories,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download='gemini-memory.json';
+a.click();
+showToast('💾 Eksportert!');
+}
+
+renderMemories();
+</script>
+</body>
+</html>
